@@ -20,22 +20,22 @@ data_module_ui <- function(id){
   tagList(
     selectInput(ns("Objektart"), "Objektart", choices = choices_objektart, selected = choices_objektart, multiple = T),
     sliderInput(ns("Kaufpreis"), "Kaufpreis", min = 0, max = 3000000, value = c(0,3000000), step = 1000),
+    sliderInput(ns("KaufpreisQM"), "QM - Kaufpreis ", min = 0, max = 15000, value = c(0,15000), step = 10),
     dateRangeInput(ns("Kaufdatum"), label = "Kaufdatum", start = as.Date("2019-01-01"), end = lubridate::now(), min = as.Date("2019-01-01"), max = lubridate::now()),
 
     sliderInput(ns("Grundflaeche"), "Grundstuecksgroesse", min = 0, max = 3500, value = c(0,3500), step = 10),
     sliderInput(ns("Nutzflaeche"), "Wohnflaeche", min = 0, max = 1000, value = c(0,1000), step = 1),
-    actionButton(ns("start"), "Start!"),
   )
 }
 
 #' data_module_server Server Functions
 #'
 #' @noRd
-data_module_server <- function(id, polygon_data){
+data_module_server <- function(id, action, polygon_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
 
-    data <- eventReactive( input$start, {
+    data <- eventReactive( action(), {
       df_coordinates <- polygon_data()
 
       input_map <- reactiveValuesToList(input)
@@ -43,6 +43,8 @@ data_module_server <- function(id, polygon_data){
       input_map$Bereich <- c(df_coordinates$xco_wgs84 - 0.05, df_coordinates$xco_wgs84 + 0.05, df_coordinates$yco_wgs84 - 0.05, df_coordinates$yco_wgs84 + 0.05)
 
       immonet_datenbankabfrage <- input_map %>% toJSON()
+
+      ## ToDo: aktualisiere Abfrage
       res_datenbankabfrage_immonet <- httr::POST(paste0(server_adresse, "search_immonet_objects/immonet_objects"),
                                                  body = list(immonet_datenbankabfrage), encode = "json")
       df_immonet <- httr::content(res_datenbankabfrage_immonet, simplifyVector = T) %>% as_tibble()

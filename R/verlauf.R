@@ -16,23 +16,26 @@ choices_bez <- marktschwankung %>% dplyr::ungroup() %>%  dplyr::distinct(bez_id)
 #' @importFrom shiny NS tagList
 verlauf_ui <- function(id){
   ns <- NS(id)
-  tagList(
-    selectInput(ns("Modelltyp"), "Modelltyp", choices = c("EFH", "ETW"), selected = "", multiple = F),
-    selectInput(ns("bez_id"), "BezirkId",     choices = choices_bez,     selected = "", multiple = F),
+  fluidRow(
+    column(2,
+           selectInput(ns("Modelltyp"), "Modelltyp", choices = c("EFH", "ETW"), multiple = F),
+           selectInput(ns("bez_id"), "BezirkId",     choices = c("", choices_bez),  multiple = F),
+           ),
 
-    tableOutput(ns("tabelle")),
-    plotOutput(ns("verlauf_plot")),
+    column(4, tableOutput(ns("tabelle"))),
+    column(6, plotOutput(ns("verlauf_plot"))),
   )
 }
 
 #' verlauf_server Server Functions
 #'
 #' @noRd
-verlauf_server <- function(id, polygon_data){
+verlauf_server <- function(id, action, polygon_data){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
 
-    verlauf_data <- reactive({
+    verlauf_data <- eventReactive(action(),{
+      print("Suche nach Angaben!")
       input_verlauf      <- reactiveValuesToList(input)
       input_verlauf <<- input_verlauf
 
@@ -43,10 +46,11 @@ verlauf_server <- function(id, polygon_data){
       daten_filter
     })
 
-    observeEvent( polygon_data(), {
+    observeEvent(polygon_data(), {
+      print("Update data!")
       df_coords <- polygon_data()
-      df_coords_all <<- df_coords
-      updateSelectInput(ns("bez_id"), selected = polygon_data$bez_id) ##  df_coords$bez_id)
+      df_coords <<- df_coords
+      if("data.frame" %in% class(df_coords)) updateSelectInput(session, "bez_id", selected = df_coords$bez_id)
     })
 
     output$tabelle <- renderTable({
@@ -63,6 +67,7 @@ verlauf_server <- function(id, polygon_data){
 
     output$verlauf_plot <- renderPlot({
       daten_filter <- verlauf_data()
+      print("Plot graphic")
 
       p_index2 <- daten_filter %>%
         ggplot() +

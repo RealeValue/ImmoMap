@@ -4,6 +4,7 @@ library(shiny)
 library(shinydashboard)
 library(jsonlite)
 
+source("action_module.R")
 source("extract_polygon_data.R")
 source("data_module.R")
 source("map_data.R")
@@ -20,14 +21,16 @@ ui <- fluidPage(
         sidebarPanel(
           extract_polygon_data_ui("coords"),
           data_module_ui("data"),
+          action_module_ui("start"),
           width = 4,
         ),
 
         # Show a plot of the generated distribution
         mainPanel(
 
-          map_data_ui("result_data"),
           verlauf_ui("Verlauf"),
+          map_data_ui("result_data"),
+
         )
     )
 )
@@ -35,13 +38,14 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
 
-  polygon_data <- extract_polygon_data_server("coords")
+  action_module <- action_module_server("start")
 
-  daten <- data_module_server("data", polygon_data = polygon_data)
+  polygon_data <- extract_polygon_data_server("coords", action = action_module)
+  daten        <- data_module_server("data", action = action_module, polygon_data = polygon_data)
 
 
-  map_data_server("result_data", daten = daten)
-  verlauf_server("Verlauf", polygon_data = polygon_data)
+  map_data_server("result_data", polygon_data = polygon_data, daten = daten)
+  verlauf_server("Verlauf",      polygon_data = polygon_data, action = action_module)
 
 }
 
