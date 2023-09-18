@@ -4,6 +4,7 @@ library(shiny)
 library(shinydashboard)
 library(jsonlite)
 
+source("id_module.R")
 source("action_module.R")
 source("extract_polygon_data.R")
 source("data_module.R")
@@ -19,10 +20,11 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins
     sidebarLayout(
         sidebarPanel(
+          id_module_ui("uuid"),
           extract_polygon_data_ui("coords"),
           data_module_ui("data"),
           action_module_ui("start"),
-          width = 4,
+          width = 2,
         ),
 
         # Show a plot of the generated distribution
@@ -38,6 +40,7 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
 
+  id_module_server("uuid")
   action_module <- action_module_server("start")
 
   polygon_data <- extract_polygon_data_server("coords", action = action_module)

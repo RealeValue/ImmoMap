@@ -43,8 +43,8 @@ data_module_server <- function(id, action, polygon_data){
       input_map$Bereich <- c(df_coordinates$xco_wgs84 - 0.05, df_coordinates$xco_wgs84 + 0.05, df_coordinates$yco_wgs84 - 0.05, df_coordinates$yco_wgs84 + 0.05)
 
       immonet_datenbankabfrage <- input_map %>% toJSON()
+      immonet_datenbankabfrage_all <<- immonet_datenbankabfrage
 
-      ## ToDo: aktualisiere Abfrage
       res_datenbankabfrage_immonet <- httr::POST(paste0(server_adresse, "search_immonet_objects/immonet_objects"),
                                                  body = list(immonet_datenbankabfrage), encode = "json")
       df_immonet <- httr::content(res_datenbankabfrage_immonet, simplifyVector = T) %>% as_tibble()
