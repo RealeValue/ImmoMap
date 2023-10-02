@@ -63,7 +63,6 @@ map_data_server <- function(id, polygon_data, daten){
       df_immonet <- daten()
       df         <- polygon_data()
 
-
       leafMap <- leaflet(data = df_immonet) %>%
         leaflet::addTiles() %>%
         addFullscreenControl() %>%
@@ -88,7 +87,12 @@ map_data_server <- function(id, polygon_data, daten){
     })
 
     observe({
+      input_map_list <- reactiveValuesToList(input)
+      input_map_list <<- input_map_list
+
+      print("Zeichne Punkte neu!")
       df_immonet <- data_selected()
+      df_immonet_xxxx <<- df_immonet
 
       point_popup <-  paste(
         "<br>", "<b> ID:               </b>",  df_immonet$BewertungId,
@@ -120,11 +124,9 @@ map_data_server <- function(id, polygon_data, daten){
     })
 
     poly_drawn <- reactive({ ## eventReactive(input$map_draw_new_feature, {
-      input_map_list <- reactiveValuesToList(input)
-      input_map_list <<- input_map_list
-
       feat   <- input$map_draw_new_feature
       if(is.null(feat)) {
+        print("Generate empty polygon!")
         empty_poly <- st_sf(st_sfc(), crs = 4326)
         return(empty_poly)
       }
@@ -142,24 +144,38 @@ map_data_server <- function(id, polygon_data, daten){
       poly
     })
 
-    data_selected <- reactive({
+    leaflet_id <- reactive({
+      if(is.null(input$map_draw_new_feature$properties$`_leaflet_id`) & ! is.null(polygon_data())) id <- 1 else id <- input$map_draw_new_feature$properties$`_leaflet_id`
+      print(paste("Leaflet ID:", id))
+      id
+    })
+
+    data_selected <- eventReactive(leaflet_id(), { ## reactive({
+      print("Evaluliere Daten!")
+
       poly           <- poly_drawn()
       poly_all <<- poly
       df_immonet     <- daten()
 
-      if( nrow(poly) == 0) return( df_immonet %>% dplyr::mutate(Selected = 1L))
-
-      df_immonet <- df_immonet %>%
-        st_as_sf(coords = c("xco_wgs84", "yco_wgs84"), crs = 4326) %>%
-        st_intersection(poly) %>%
-        st_drop_geometry() %>%
-        dplyr::select(BewertungId) %>%
-        dplyr::mutate(Selected = 1L) %>%
-        dplyr::right_join(df_immonet, by = "BewertungId") %>%
-        dplyr::mutate(Selected = if_else(is.na(Selected), 0L, Selected))
+      if( nrow(poly) == 0) {
+        print("Poly leer! Returniere alle Daten!")
+        df_immonet <- df_immonet %>% dplyr::mutate(Selected = 1L)
+      } else {
+        print("Verschneide mit Polygon!")
+        df_immonet <- df_immonet %>%
+          st_as_sf(coords = c("xco_wgs84", "yco_wgs84"), crs = 4326) %>%
+          st_intersection(poly) %>%
+          st_drop_geometry() %>%
+          dplyr::select(BewertungId) %>%
+          dplyr::mutate(Selected = 1L) %>%
+          dplyr::right_join(df_immonet, by = "BewertungId") %>%
+          dplyr::mutate(Selected = if_else(is.na(Selected), 0L, Selected))
+      }
 
       df_immonet_all <<- df_immonet
       df_immonet
+
+
     })
 
     output$data <- renderDT({
