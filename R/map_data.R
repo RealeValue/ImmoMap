@@ -87,12 +87,12 @@ map_data_server <- function(id, polygon_data, daten){
     })
 
     observe({
-      input_map_list <- reactiveValuesToList(input)
-      input_map_list <<- input_map_list
+      #input_map_list <- reactiveValuesToList(input)
+      #input_map_list <<- input_map_list
 
       print("Zeichne Punkte neu!")
       df_immonet <- data_selected()
-      df_immonet_xxxx <<- df_immonet
+      df_immonet <- df_immonet %>% dplyr::mutate(Selected = if_else( row_number() %in% input$data_rows_selected, 0L, Selected))
 
       point_popup <-  paste(
         "<br>", "<b> ID:               </b>",  df_immonet$BewertungId,
@@ -184,34 +184,26 @@ map_data_server <- function(id, polygon_data, daten){
       df_immonet <- df_immonet %>% dplyr::filter(Selected == 1)
 
       dat_display <-  cbind(
-        check = shinyInput(checkboxInput, nrow(df_immonet), "checkb"),
+        ## check = shinyInput(checkboxInput, nrow(df_immonet), "checkb"),
         df_immonet %>% dplyr::select(Id = BewertungId, Kaufpreis, Kaufdatum, KaufpreisQM, zins, NettoPreisValorisiert, PreisProQMValorisiert, Strasse, Hausnummer, Grundflaeche, NutzflaecheBerechnet, Objektart, Tagebuchzahl, EintrageJahr)
       )
-      dat_display_all <<-dat_display
+      dat_display_all <<- dat_display
 
       dat_display %>%
         datatable(
           rownames = FALSE,
           escape = FALSE,
           editable = list(target = "cell", disable = list(columns = 3)),
-          selection = "none",
-          callback = JS(js("data", session$ns))
+          selection = list(mode = "multiple", target = "row")
+          #callback = JS(js("data", session$ns))
         )
     }, server = FALSE)
-
-
-    observeEvent(input[["data_cell_edit"]], {
-      ## Here is a bug !!
-      rows_selected <- c()
-      rows_selected <- c(rows_selected, input[["data_cell_edit"]]$row)
-      print(rows_selected)
-    })
-
 
 
     output$summary <- renderTable({
       df_immonet <- data_selected()
 
+      df_immonet <- df_immonet %>% dplyr::mutate(Selected = if_else( row_number() %in% input$data_rows_selected, 0L, Selected))
       df_immonet %>%
         dplyr::filter(Selected == 1) %>%
         dplyr::reframe(
