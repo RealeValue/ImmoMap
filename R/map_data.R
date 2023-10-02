@@ -87,9 +87,11 @@ map_data_server <- function(id, polygon_data, daten){
     })
 
     observe({
-      #input_map_list <- reactiveValuesToList(input)
-      #input_map_list <<- input_map_list
+      input_map_list <- reactiveValuesToList(input)
+      input_map_list <<- input_map_list
+    })
 
+    observe({
       print("Zeichne Punkte neu!")
       df_immonet <- data_selected()
       df_immonet <- df_immonet %>% dplyr::mutate(Selected = if_else( row_number() %in% input$data_rows_selected, 0L, Selected))
