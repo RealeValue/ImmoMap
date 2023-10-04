@@ -195,7 +195,7 @@ map_data_server <- function(id, polygon_data, daten){
         datatable(
           rownames = FALSE,
           escape = FALSE,
-          editable = list(target = "cell", disable = list(columns = 3)),
+          ## editable = list(target = "cell", disable = list(columns = 3)),
           selection = list(mode = "multiple", target = "row")
           #callback = JS(js("data", session$ns))
         )

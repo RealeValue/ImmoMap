@@ -3,6 +3,7 @@ rm(list = ls())
 library(shiny)
 library(shinydashboard)
 library(jsonlite)
+library(DT)
 
 
 source("id_module.R")
