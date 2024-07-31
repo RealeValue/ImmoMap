@@ -1,9 +1,6 @@
 rm(list = ls())
 
-### Ich will hier etwas ändern!
-##Ich jhabe hier etwas geändert!
-## ioch mache noch eine änderung!
-## noch etwas
+
 library(shiny)
 library(shinydashboard)
 library(jsonlite)
@@ -54,7 +51,7 @@ server <- function(input, output, session) {
 
 
   map_data_server("result_data", polygon_data = polygon_data, daten = daten)
-  verlauf_server("Verlauf",      polygon_data = polygon_data, action = action_module)
+  verlauf_server("Verlauf") ## ,      polygon_data = polygon_data, action = action_module)
 
 }
 

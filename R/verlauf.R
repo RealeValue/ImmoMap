@@ -30,14 +30,18 @@ verlauf_ui <- function(id){
 #' verlauf_server Server Functions
 #'
 #' @noRd
-verlauf_server <- function(id, action, polygon_data){
+verlauf_server <- function(id){  ## , action, polygon_data
   moduleServer(id, function(input, output, session){
     ns <- session$ns
 
-    verlauf_data <- eventReactive(action(),{
-      print("Suche nach Angaben!")
-      input_verlauf      <- reactiveValuesToList(input)
+    observe({
+      input_verlauf  <- reactiveValuesToList(input)
       input_verlauf <<- input_verlauf
+    })
+
+    verlauf_data <- reactive({ ##  eventReactive(action(),{
+      print("Suche nach Angaben!")
+
 
       if( is.null(input$Modelltyp) | is.null(input$bez_id))  shiny::validate("Waehlen Sie einen Modelltyp und einen Bezirk")
 
@@ -46,12 +50,12 @@ verlauf_server <- function(id, action, polygon_data){
       daten_filter
     })
 
-    observeEvent(polygon_data(), {
-      print("Update data!")
-      df_coords <- polygon_data()
-      df_coords <<- df_coords
-      if("data.frame" %in% class(df_coords)) updateSelectInput(session, "bez_id", selected = df_coords$bez_id)
-    })
+    # observeEvent(polygon_data(), {
+    #   print("Update data!")
+    #   df_coords <- polygon_data()
+    #   df_coords <<- df_coords
+    #   if("data.frame" %in% class(df_coords)) updateSelectInput(session, "bez_id", selected = df_coords$bez_id)
+    # })
 
     output$tabelle <- renderTable({
       daten_filter <- verlauf_data()
