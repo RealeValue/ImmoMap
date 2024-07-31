@@ -1,0 +1,17 @@
+default:  
+  prfx: "S:/"
+  lagedatensatz_pfad: "S:/Rohdaten/Aufbereitung/Lagedaten/"
+  work: "S:/liebe_irg/LIEBE/Data/Liebe/Versionen/"
+  
+  log_file: "Codes/Log/liebe_log_file.txt"
+  modell.pfad: "S:/liebe_irg/LIEBE/Software/Versionen/"
+  rasterpfad:  "S:/Rohdaten/Aufbereitung/Lagedaten/stars_raster/"
+  git_liebe: "S:/liebe_irg/LIEBE/USERNAME/LIEBEModel/"
+  git_immonet: "S:/liebe_irg/LIEBE/USERNAME/ImmoNet/"
+  git_validierung: "S:/liebe_irg/LIEBE/USERNAME/Validierung/"
+  immonet_rohat_formatiert: "S:/Rohdaten/Aufbereitung/ImmoNet/"
+  ds_confidential: "S:/Zugangsdaten_Passwörter/ds_confidential/"
+  rohdat_path: "S:/Rohdaten/"
+  wigeo_path: "S:/Datendrehscheibe/WI-GEO/"
+  
+
