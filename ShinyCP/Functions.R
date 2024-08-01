@@ -1,15 +1,5 @@
-# reference_object <- tibble(xco_wgs84 = 16.3, yco_wgs84 = 47.3, Modelltyp = "EFH",
-#                            Aenderungsdatum = today(), Marktwert = 250000) %>%
-#   dplyr::mutate(xco_copy = xco_wgs84, yco_copy = yco_wgs84) %>%
-#   st_as_sf(coords = c("xco_copy", "yco_copy"), crs = st_crs(zsp_dat))
-#
-#
-# search_vergleichspreise_params <- reference_object
-# s
-
-
 ## Returns an sf object
-search_vergleichspreise_polygon <- function(reference_object, buffer_radius = 30000) {
+search_vergleichspreise_polygon <- function(reference_object, buffer_radius = 5000) {
   search_polygon_sf <- reference_object %>% st_buffer(dist = buffer_radius)
   return(search_polygon_sf)
 }
@@ -19,6 +9,9 @@ search_vergleichspreise_polygon <- function(reference_object, buffer_radius = 30
 # Define the function
 # returns sf object
 find_ComparableObjectsWithinPolygon <- function(search_polygon_sf, search_vergleichspreise_params) {
+
+  search_polygon_sf <<- search_polygon_sf
+  search_vergleichspreise_params <<- search_vergleichspreise_params
 
   bbox_sel <- search_polygon_sf %>% st_bbox()
 
@@ -89,7 +82,7 @@ find_ComparableObjectsWithinPolygon <- function(search_polygon_sf, search_vergle
 }
 
 find_ComparableObjects <- function(ComparableObjectsWithinPolygon) {
-  ComparableObjectsWithinPolygon %>% dplyr::filter(Selected = 1)
+  ComparableObjectsWithinPolygon %>% dplyr::filter(Selected == 1)
 }
 
 

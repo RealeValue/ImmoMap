@@ -2,6 +2,7 @@ library(leaflet)
 library(leaflet.extras)
 library(tidyverse)
 
+leaflet_gruppen <- c("only selected", "all")
 
 shinyInput <- function(FUN, len, id, ...) {
   inputs <- character(len)
@@ -40,7 +41,8 @@ js <- function(dtid, ns) {
 map_data_ui <- function(id){
   ns <- NS(id)
   fluidRow(
-    column(6,  leafletOutput(ns("map"))),
+    column(6,
+           leafletOutput(ns("map"))),
     column(6,  tableOutput(ns("summary"))),
     column(12, dataTableOutput(ns("data_table"))),
   )
@@ -58,9 +60,14 @@ map_data_server <- function(id, data, ref_object){
       input_map_list <<- input_map_list
     })
 
+    data_within_polygon <- reactive({
+      data            <- data()
+      data
+    })
+
 
     output$map <- renderLeaflet({
-      df                  <- data()
+      ## df                  <- data_within_polygon()
       df_reference_object <- ref_object()
 
       marker_popup <-  paste(
@@ -70,8 +77,8 @@ map_data_server <- function(id, data, ref_object){
         "<br>", "<b> Strasse:          </b>",  df_reference_object$Strasse,
         "<br>", "<b> Hausnummer:       </b>",  df_reference_object$Hausnummer,
         "<br>",
-        "<br>", "<b> Marktwert:               </b>",  df_reference_object$Marktwert %>% round(-3) %>% formattable::currency(symbol = Euro, digits = 0),
-        "<br>", "<b> Datum:                   </b>",  df_reference_object$Aenderungsdatum,
+        "<br>", "<b> Marktwert:        </b>",  df_reference_object$Marktwert %>% round(-3) %>% formattable::currency(symbol = Euro, digits = 0),
+        "<br>", "<b> Datum:            </b>",  df_reference_object$Aenderungsdatum,
 
         "<br>",
 
@@ -79,7 +86,7 @@ map_data_server <- function(id, data, ref_object){
       )
 
 
-      leafMap <- leaflet(data = df) %>%
+      leafMap <- leaflet(data = df_reference_object) %>%
         leaflet::addTiles() %>%
         addFullscreenControl() %>%
         leaflet::addProviderTiles("Stamen.Toner",      group = "Toner")    %>%
@@ -88,7 +95,7 @@ map_data_server <- function(id, data, ref_object){
 
         ## Layer Control
         leaflet::addLayersControl( baseGroups    = c("OSM (default)", "Toner", "TopoMap", "Satellit"),
-                                   overlayGroups = c("only selected", "all"),
+                                   overlayGroups = leaflet_gruppen,
                                    options       = leaflet::layersControlOptions(collapsed = TRUE)) %>%
         addMarkers(df_reference_object$xco_wgs84, df_reference_object$yco_wgs84, popup = marker_popup) %>%
         setView(df_reference_object$xco_wgs84, df_reference_object$yco_wgs84, zoom = 9) %>%
@@ -106,7 +113,7 @@ map_data_server <- function(id, data, ref_object){
 
 
     observe({
-      df         <- data()
+      df         <- data_within_polygon()
 
       point_popup <-  paste(
         "<br>", "<b> ID:               </b>",  df$BewertungId,
@@ -125,10 +132,11 @@ map_data_server <- function(id, data, ref_object){
       )
 
       leafletProxy("map", data = df) %>%
+        clearGroup(leaflet_gruppen) %>%
         addCircleMarkers(df$xco_wgs84, df$yco_wgs84,
                          radius = ifelse(df$Selected == 0, 1, 10),
                          color  = ifelse(df$Selected == 0, "black", "red"),
-                         group  = ifelse(df$Selected == 1, "only selected", "all"),
+                         group  = ifelse(df$Selected == 1, leaflet_gruppen[1], leaflet_gruppen[2]),
                          fill   = TRUE, fillOpacity = 1,
                          popup = point_popup)
 
@@ -210,7 +218,7 @@ map_data_server <- function(id, data, ref_object){
   #   })
   #
     output$data_table <- renderDT({
-      df         <- data()
+      df         <- data_within_polygon()
 
       data_table <- df %>%
         st_drop_geometry() %>%
@@ -233,7 +241,7 @@ map_data_server <- function(id, data, ref_object){
 
 
     output$summary <- renderTable({
-      df <- data()
+      df <- data_within_polygon()
 
       df %>%
         st_drop_geometry() %>%

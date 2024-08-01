@@ -17,6 +17,8 @@ data_module_ui <- function(id){
 
     sliderInput(ns("Grundflaeche"), "Grundstuecksgroesse", min = 0, max = 3500, value = c(0,3500), step = 10),
     sliderInput(ns("Nutzflaeche"), "Wohnflaeche", min = 0, max = 1000, value = c(0,1000), step = 1),
+
+    sliderInput(ns("search_radius"), label = "Radius (km)", value = 5, min = 0.5, max = 30, step = 0.5),
   )
 }
 
@@ -31,18 +33,19 @@ data_module_server <- function(id, action, ref_object){
       df_reference_object <- ref_object()
 
       KaufpreisUpdate <- c(df_reference_object$Marktwert * 0.85, df_reference_object$Marktwert * 1.15) %>% round(-4)
-
+      end_date   <- df_reference_object$Aenderungsdatum %>% as.Date()
+      start_date <- end_date %m-% years(2)
 
       updateSelectInput(session, inputId = "Objektart", selected = df_reference_object$Objektart_num)
       updateSliderInput(session, inputId = "Kaufpreis", value = KaufpreisUpdate)
-      updateDateRangeInput(session, inputId = "Kaufdatum", end = df_reference_object$Aenderungsdatum %>% as.Date())
+      updateDateRangeInput(session, inputId = "Kaufdatum", start = start_date, end = end_date)
     })
 
 
     data <- eventReactive( action(), {
       df_reference_object <- ref_object()
 
-      search_polygon_sf <-  df_reference_object %>% search_vergleichspreise_polygon()
+      search_polygon_sf <-  df_reference_object %>% search_vergleichspreise_polygon(buffer_radius = input$search_radius * 1000)
       df_vergleichswerte <- find_ComparableObjectsWithinPolygon(search_polygon_sf, df_reference_object)
 
       df_vergleichswerte <<- df_vergleichswerte
