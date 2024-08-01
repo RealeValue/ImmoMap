@@ -1,0 +1,16 @@
+default:
+  qs:
+    driver: "SQL Server"
+    server: "REV1S013.rev.local"
+    uid: "revqs"
+    pwd: "a9vecato"
+    port: 1433
+    database: "liebeqs"
+  immonet:
+    driver: "SQL Server"
+    server: "REV1S013.rev.local"
+    uid: "teamdatascience"
+    pwd: "*#Bj9k?y4D"
+    port: 1433
+    database: "immonet"
+

@@ -44,7 +44,8 @@ ref_object_module_server <- function(id){
         add_Objektart() %>%
         dplyr::mutate(xco_wgs84 = GeocodeWgs84X, yco_wgs84 = GeocodeWgs84Y,
                       xco_copy = GeocodeWgs84X,  yco_copy  = GeocodeWgs84Y) %>%
-        st_as_sf(coords = c("xco_copy", "yco_copy"), crs = st_crs(zsp_dat))
+        st_as_sf(coords = c("xco_copy", "yco_copy"), crs = st_crs(zsp_dat)) %>%
+        st_join(zsp_dat)
 
       df_reference_object <<- df_reference_object
       df_reference_object

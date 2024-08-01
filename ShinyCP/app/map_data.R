@@ -43,7 +43,8 @@ map_data_ui <- function(id){
   fluidRow(
     column(6,
            leafletOutput(ns("map"))),
-    column(6,  tableOutput(ns("summary"))),
+    column(6,  tmapOutput(ns("tmap"))),
+    column(2,  tableOutput(ns("summary"))),
     column(12, dataTableOutput(ns("data_table"))),
   )
 }
@@ -67,7 +68,6 @@ map_data_server <- function(id, data, ref_object){
 
 
     output$map <- renderLeaflet({
-      ## df                  <- data_within_polygon()
       df_reference_object <- ref_object()
 
       marker_popup <-  paste(
@@ -110,6 +110,23 @@ map_data_server <- function(id, data, ref_object){
 
       leafMap
     })
+
+    output$tmap <- renderTmap({
+      df_reference_object <- ref_object()
+      zsp_dat_small       <- zsp_dat %>% dplyr::filter(bez_id %in% df_reference_object$bez_id)
+      box                 <- df_reference_object %>% st_buffer(dist = 10000) %>% st_bbox()
+
+      raster_small <- ra_score_raster %>% st_crop(box)
+
+      df_reference_object %>%
+        tm_shape(bbox = box) +
+        tm_markers() +
+        tm_shape(raster_small) +
+        tm_raster(alpha = 0.6) +
+        tm_shape(zsp_dat_small) +
+        tm_borders()
+    })
+
 
 
     observe({
@@ -225,7 +242,7 @@ map_data_server <- function(id, data, ref_object){
         dplyr::filter(Selected == 1) %>%
         dplyr::mutate(KaufpreisQM = KaufpreisQM %>% round(-1)) %>%
         dplyr::select(Id = BewertungId, Kaufpreis, Kaufdatum, KaufpreisQM, Zins = zins, PreisValorisiert,
-                      Bezugszeitraum = zeit_diff_jahre,
+                      ## Bezugszeitraum = zeit_diff_jahre,
                       Strasse, Hausnummer, Grundflaeche, NutzflaecheBerechnet, Objektart,
                       Tagebuchzahl, EintrageJahr)
 

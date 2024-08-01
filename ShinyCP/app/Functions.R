@@ -27,6 +27,13 @@ find_ComparableObjectsWithinPolygon <- function(search_polygon_sf, search_vergle
       yco_wgs84 >= ymin,
       yco_wgs84 <= ymax
     ) %>%
+    dplyr::filter(
+      Kaufdatum <= !!search_vergleichspreise_params$Aenderungsdatum,
+      Modelltyp %in% !!search_vergleichspreise_params$Modelltyp,
+      Kaufpreis >= !!search_vergleichspreise_params$Marktwert * 0.85,
+      Kaufpreis <= !!search_vergleichspreise_params$Marktwert * 1.15
+    ) %>%
+    dplyr::collect() %>%
     dplyr::mutate(xco_copy = xco_wgs84, yco_copy = yco_wgs84) %>%
     st_as_sf(coords = c("xco_copy", "yco_copy"), crs = st_crs(zsp_dat))
 
@@ -37,13 +44,7 @@ find_ComparableObjectsWithinPolygon <- function(search_polygon_sf, search_vergle
     dplyr::arrange(Distanz)
 
 
-  ComparableObjects <- ComparableObjectsWithinPolygon %>%
-    dplyr::filter(
-      Kaufdatum <= !!search_vergleichspreise_params$Aenderungsdatum,
-      Modelltyp %in% !!search_vergleichspreise_params$Modelltyp,
-      Kaufpreis >= !!search_vergleichspreise_params$Marktwert * 0.85,
-      Kaufpreis <= !!search_vergleichspreise_params$Marktwert * 1.15
-    )
+  ComparableObjects <- ComparableObjectsWithinPolygon
 
 
   n                <- nrow(ComparableObjects)
