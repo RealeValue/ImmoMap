@@ -1,3 +1,23 @@
+add_Objektart <- function (df) {
+  df %>% dplyr::collect() %>% dplyr::mutate(Objektart_num = Objektart,
+                                            Objektart = dplyr::case_when(Objektart_num == "10" ~
+                                                                           "Eigentumswohnung", Objektart_num == "20" ~ "Einfamilienhaus",
+                                                                         Objektart_num == "21" ~ "Zweifamilienhaus", Objektart_num ==
+                                                                           "30" ~ "Reihenhaus", Objektart_num == "31" ~
+                                                                           "Doppelhaushaelfte", Objektart_num == "37" ~
+                                                                           "Gebaeude", Objektart_num == "40" ~ "Kleingarten",
+                                                                         Objektart_num == "50" ~ "Grundstueck", Objektart_num ==
+                                                                           "60" ~ "PKW-Abstellplatz", TRUE ~ "Unbekannt") %>%
+                                              factor(levels = c("Eigentumswohnung", "Einfamilienhaus",
+                                                                "Zweifamilienhaus", "Reihenhaus", "Doppelhaushaelfte",
+                                                                "Gebaeude", "Kleingarten", "Grundstueck", "PKW-Abstellplatz")),
+                                            Modelltyp = dplyr::case_when(Objektart_num %in% c(10) ~
+                                                                           "ETW", Objektart_num %in% c(20, 21, 30, 31, 37, 40) ~
+                                                                           "EFH", Objektart_num %in% c(50) ~ "GST", Objektart_num %in%
+                                                                           c(60) ~ "PKW") %>% factor(levels = c("EFH", "ETW",
+                                                                                                                "GST", "PKW")))
+}
+
 ## Returns an sf object
 search_vergleichspreise_polygon <- function(reference_object, buffer_radius = 5000) {
   search_polygon_sf <- reference_object %>% st_buffer(dist = buffer_radius)
