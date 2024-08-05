@@ -65,7 +65,8 @@ ui <- fluidPage(
     ),
     mainPanel(
       ##verlauf_ui("Verlauf"),
-      map_data_ui("result_data")
+      map_data_ui("result_data"),
+      downloadButton("report", "Generate report")
     )
   )
 )
@@ -78,6 +79,24 @@ server <- function(input, output, session) {
   daten <- data_module_server("data", action = action_module, ref_object = ref_object)
   map_data_server("result_data", data = daten, ref_object = ref_object)
   ## verlauf_server("Verlauf") ## , polygon_data = polygon_data, action = action_module)
+
+  output$report <- downloadHandler(
+    filename <-  "XXX_volcanoes_report.pdf",
+    content = function(file) {
+      tempReport <- file.path(tempdir(), "Report.Rmd")
+      file.copy("Report.Rmd", tempReport, overwrite = TRUE)
+      params <- list(n = 20)
+      file_all <<- file
+      tempReport_all <<- tempReport
+
+      rmarkdown::render("Report.Rmd", output_file = "CPNEU_volcanoes_report.pdf",
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
+    }
+  )
+
+
 }
 
 shinyApp(ui = ui, server = server)
