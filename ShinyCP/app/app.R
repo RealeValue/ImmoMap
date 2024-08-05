@@ -85,11 +85,15 @@ server <- function(input, output, session) {
     content = function(file) {
       tempReport <- file.path(tempdir(), "Report.Rmd")
       file.copy("Report.Rmd", tempReport, overwrite = TRUE)
-      params <- list(n = 20)
+
+      daten <- daten()
+
+
+      params <- list(n = 20, daten = daten)
       file_all <<- file
       tempReport_all <<- tempReport
 
-      rmarkdown::render("Report.Rmd", output_file = "CPNEU_volcanoes_report.pdf",
+      rmarkdown::render("Report.Rmd", output_file = "C:/tmp/CPNEU_volcanoes_report.pdf",
                         params = params,
                         envir = new.env(parent = globalenv())
       )

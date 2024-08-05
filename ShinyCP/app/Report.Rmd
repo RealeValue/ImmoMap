@@ -3,6 +3,7 @@ title: "Dynamic report"
 output: pdf_document
 params:
   n: 5
+  daten: [some object]
 ---
 
 ```{r, include=FALSE}
@@ -12,6 +13,7 @@ options(tinytex.verbose = TRUE)
 ```{r}
 # The `params` object is available in the document.
 params$n
+params$daten %>% dplyr::select(BewertungId, Kaufpreis, Kaufdatum)
 ```
 
 A plot of `params$n` random points.
