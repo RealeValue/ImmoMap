@@ -43,7 +43,7 @@ map_data_ui <- function(id){
   fluidRow(
     column(6,
            leafletOutput(ns("map"))),
-    column(6,  tmapOutput(ns("tmap"))),
+    # column(6,  tmapOutput(ns("tmap"))),
     column(2,  tableOutput(ns("summary"))),
     column(12, dataTableOutput(ns("data_table"))),
   )
@@ -63,8 +63,35 @@ map_data_server <- function(id, data, ref_object){
 
     data_within_polygon <- reactive({
       data            <- data()
-      data
+      poly            <- select_polygon()
+
+      data %>% st_intersection(poly) %>% find_selected_objects()
     })
+
+    select_polygon <- reactive({
+
+      df_reference_object <- ref_object()
+      polygon_selected    <- df_reference_object %>% st_buffer(dist = 5 * 1000) %>% dplyr::select(geometry)
+
+      if(is.null(input$map_draw_new_feature)) return(polygon_selected)
+
+      feat   <- input$map_draw_new_feature
+      coords <- unlist(feat$geometry$coordinates)
+      coords <- matrix(coords, ncol = 2, byrow = T)
+      poly   <- st_sf(st_sfc(st_polygon(list(coords))), crs = 4326)
+
+      poly
+    })
+
+    observe({
+      polygon_selected <- select_polygon()
+      coords <- polygon_selected %>% st_coordinates()
+
+      leafletProxy("map", data = df) %>%
+        clearGroup("poly") %>%
+        addPolygons(coords[,1], coords[,2], group = "poly")
+    })
+
 
 
     output$map <- renderLeaflet({
@@ -84,6 +111,7 @@ map_data_server <- function(id, data, ref_object){
 
         "<br>"
       )
+
 
 
       leafMap <- leaflet(data = df_reference_object) %>%
@@ -150,6 +178,7 @@ map_data_server <- function(id, data, ref_object){
 
       leafletProxy("map", data = df) %>%
         clearGroup(leaflet_gruppen) %>%
+        ## clearGroup("poly") %>%
         addCircleMarkers(df$xco_wgs84, df$yco_wgs84,
                          radius = ifelse(df$Selected == 0, 1, 10),
                          color  = ifelse(df$Selected == 0, "black", "red"),
@@ -159,6 +188,8 @@ map_data_server <- function(id, data, ref_object){
 
 
     })
+
+
 
     # observe({
     #   print("Zeichne Punkte neu!")
@@ -239,10 +270,11 @@ map_data_server <- function(id, data, ref_object){
 
       data_table <- df %>%
         st_drop_geometry() %>%
-        dplyr::filter(Selected == 1) %>%
+        dplyr::arrange(desc(Selected)) %>%
         dplyr::mutate(KaufpreisQM = KaufpreisQM %>% round(-1)) %>%
-        dplyr::select(Id = BewertungId, Kaufpreis, Kaufdatum, KaufpreisQM, Zins = zins, PreisValorisiert,
+        dplyr::select(Id = BewertungId, Selected, Kaufpreis, Kaufdatum, KaufpreisQM, Zins = zins, PreisValorisiert,
                       ## Bezugszeitraum = zeit_diff_jahre,
+
                       Strasse, Hausnummer, Grundflaeche, NutzflaecheBerechnet, Objektart,
                       Tagebuchzahl, EintrageJahr)
 

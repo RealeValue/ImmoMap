@@ -58,14 +58,15 @@ find_ComparableObjectsWithinPolygon <- function(search_polygon_sf, search_vergle
     st_as_sf(coords = c("xco_copy", "yco_copy"), crs = st_crs(zsp_dat))
 
   ComparableObjectsWithinPolygon <- ComparableObjectsWithinPolygon %>%
-    dplyr::filter(! is.na(Modelltyp)) %>%
-    st_intersection(search_polygon_sf) %>%
+    ## st_intersection(search_polygon_sf) %>%
     dplyr::mutate(Distanz = st_distance(search_vergleichspreise_params)) %>%
     dplyr::arrange(Distanz)
 
+  ComparableObjectsWithinPolygon
+}
 
+find_selected_objects <- function(ComparableObjectsWithinPolygon) {
   ComparableObjects <- ComparableObjectsWithinPolygon
-
 
   n                <- nrow(ComparableObjects)
   selected_objects <- ComparableObjects[1:min(5, n), ]
@@ -98,9 +99,10 @@ find_ComparableObjectsWithinPolygon <- function(search_polygon_sf, search_vergle
     st_as_sf()
 
 
-  ComparableObjectsWithinPolygon <<- ComparableObjectsWithinPolygon
+  ## ComparableObjectsWithinPolygon <<- ComparableObjectsWithinPolygon
   return(ComparableObjectsWithinPolygon)
 }
+
 
 find_ComparableObjects <- function(ComparableObjectsWithinPolygon) {
   ComparableObjectsWithinPolygon %>% dplyr::filter(Selected == 1)
