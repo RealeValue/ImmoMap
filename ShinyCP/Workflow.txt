@@ -1,0 +1,7 @@
+1. Bei Action: Filtern nach Input Parametern
+2. Polygon zeichnen
+2. Automatische Auswahl der Vergleichsobjekte
+3. Anzeigen der Tabelle
+4. Vergleichspreisauswahl anhand Tabelle
+5. Update der (ausgewählten) Vergleichsobjekte in Karte
+6. Summary der ausgewählten Vergleicshobjekte

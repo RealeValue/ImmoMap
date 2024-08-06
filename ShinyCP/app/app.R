@@ -21,7 +21,7 @@ choices_objektart <- c("Eigentumswohnung" = 10, "Einfamilienhaus" = 20, "Zweifam
                        "Reihenhaus" = 30, "Doppelhaus" = 31, "Kleingartenhaus" = 40, "Grundstück" = 50)
 
 
-Euro <- "/u20AC"
+Euro <- "€" ## "/u20AC"
 
 config_liebe <- config::get("qs")
 
