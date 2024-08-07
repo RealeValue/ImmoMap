@@ -326,7 +326,7 @@ map_data_server <- function(id, data, ref_object){
       data_table_neu <<- editData(data_table_neu, info) %>%
         dplyr::mutate(PreisValorisiert = Kaufpreis * (1 + Zins)^Bezugszeitraum)
 
-      replaceData(proxy, data_table_neu, resetPaging = FALSE)  # important
+      ## replaceData(proxy, data_table_neu, resetPaging = FALSE)  # important
     })
 
 
