@@ -65,17 +65,17 @@ find_ComparableObjectsWithinPolygon <- function(search_polygon_sf, search_vergle
   ComparableObjectsWithinPolygon
 }
 
-find_selected_objects <- function(ComparableObjectsWithinPolygon) {
+find_selected_objects <- function(ComparableObjectsWithinPolygon, AnzahlVergleichsobjekte) {
   ComparableObjects <- ComparableObjectsWithinPolygon
 
   n                <- nrow(ComparableObjects)
-  selected_objects <- ComparableObjects[1:min(5, n), ]
+  selected_objects <- ComparableObjects[1:min(AnzahlVergleichsobjekte, n), ]
   avg_Kaufpreis    <- mean(selected_objects$Kaufpreis, na.rm = TRUE)
 
 
-  if (n > 5 && abs(avg_Kaufpreis - search_vergleichspreise_params$Marktwert) / search_vergleichspreise_params$Marktwert > 0.10) {
-    for (i in 6:nrow(ComparableObjects)) {
-      for (j in 1:5) {
+  if (n > AnzahlVergleichsobjekte && abs(avg_Kaufpreis - search_vergleichspreise_params$Marktwert) / search_vergleichspreise_params$Marktwert > 0.10) {
+    for (i in (AnzahlVergleichsobjekte+1):nrow(ComparableObjects)) {
+      for (j in 1:AnzahlVergleichsobjekte) {
         temp_objects <- selected_objects
         temp_objects[j, ] <- ComparableObjects[i, ]
         avg_Kaufpreis <- mean(temp_objects$Kaufpreis, na.rm = TRUE)
