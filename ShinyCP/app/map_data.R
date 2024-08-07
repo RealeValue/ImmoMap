@@ -42,6 +42,7 @@ map_data_ui <- function(id){
   ns <- NS(id)
   fluidRow(
     column(6,
+           sliderInput(ns("n_vergleichsobjekte"), "Anzahl Vergleichsobjekte", value = 10, min = 3, max = 30),
            leafletOutput(ns("map"))),
     # column(6,  tmapOutput(ns("tmap"))),
     column(2,  tableOutput(ns("summary"))),
@@ -65,7 +66,7 @@ map_data_server <- function(id, data, ref_object){
       data            <- data()
       poly            <- select_polygon()
 
-      data %>% st_intersection(poly) %>% find_selected_objects()
+      data %>% st_intersection(poly) %>% find_selected_objects(AnzahlVergleichsobjekte = input$n_vergleichsobjekte)
     })
 
     select_polygon <- reactive({
@@ -76,8 +77,15 @@ map_data_server <- function(id, data, ref_object){
       if(is.null(input$map_draw_new_feature)) return(polygon_selected)
 
       feat   <- input$map_draw_new_feature
+
       coords <- unlist(feat$geometry$coordinates)
       coords <- matrix(coords, ncol = 2, byrow = T)
+
+      if(feat$properties$feature_type == "circle") {
+        coords <- tibble(x = coords[1], y = coords[2]) %>% st_as_sf(coords = c("x", "y"), crs = st_crs(zsp_dat)) %>%
+          st_buffer(feat$properties$radius)
+        return(coords)
+      }
       poly   <- st_sf(st_sfc(st_polygon(list(coords))), crs = 4326)
 
       poly
@@ -176,6 +184,10 @@ map_data_server <- function(id, data, ref_object){
         "<br>"
       )
 
+
+      if( ! is.null(input$data_table_rows_selected))
+        df <- df %>% dplyr::mutate(Selected = if_else(row_number() %in% input$data_table_rows_selected, 1L, 0L))
+
       leafletProxy("map", data = df) %>%
         clearGroup(leaflet_gruppen) %>%
         ## clearGroup("poly") %>%
@@ -188,6 +200,7 @@ map_data_server <- function(id, data, ref_object){
 
 
     })
+
 
 
 
@@ -265,7 +278,9 @@ map_data_server <- function(id, data, ref_object){
   #
   #   })
   #
-    output$data_table <- renderDT({
+
+
+    table_formatting <- reactive({
       df         <- data_within_polygon()
 
       data_table <- df %>%
@@ -273,32 +288,65 @@ map_data_server <- function(id, data, ref_object){
         dplyr::arrange(desc(Selected)) %>%
         dplyr::mutate(KaufpreisQM = KaufpreisQM %>% round(-1)) %>%
         dplyr::select(Id = BewertungId, Selected, Kaufpreis, Kaufdatum, KaufpreisQM, Zins = zins, PreisValorisiert,
-                      ## Bezugszeitraum = zeit_diff_jahre,
+                      Bezugszeitraum = zeit_diff_jahre,
 
                       Strasse, Hausnummer, Grundflaeche, NutzflaecheBerechnet, Objektart,
                       Tagebuchzahl, EintrageJahr)
+      data_table
+    })
+
+    output$data_table <- renderDT({
+      data_table <- table_formatting()
+      ## select all column (indixes) with expection of index of column "Zins" (index is 0 based)
+      index <- 1:length(names(data_table))
+      index <- index[-which(names(data_table) == "Zins")] - 1
+
 
       data_table %>%
         datatable(
           rownames = FALSE,
           escape = FALSE,
-          ## editable = list(target = "cell", disable = list(columns = 3)),
+          editable = list(target = "cell", disable = list(columns = index)),
           selection = list(mode = "multiple", target = "row")
           #callback = JS(js("data", session$ns))
         )
     }, server = TRUE)
 
 
+    # edit a single cell (see https://yihui.shinyapps.io/DT-edit/)
+    proxy = dataTableProxy('data_table')
+    observeEvent(input$data_table_cell_edit, {
+      data_table_neu <- table_formatting()
+      daten_alt <<- data_table_neu
+
+      info = input$data_table_cell_edit
+      info$col <- info$col + 1 ## 0 based
+      info
+
+      data_table_neu <<- editData(data_table_neu, info) %>%
+        dplyr::mutate(PreisValorisiert = Kaufpreis * (1 + Zins)^Bezugszeitraum)
+
+      replaceData(proxy, data_table_neu, resetPaging = FALSE)  # important
+    })
+
+
+
+
+    ## TODO: richtiges Vergleichsobjekte verwenden !!!
     output$summary <- renderTable({
       df <- data_within_polygon()
 
       df %>%
         st_drop_geometry() %>%
-        dplyr::filter(Selected == 1) %>%
-        dplyr::summarise(
-          Kaufpreis        = mean(Kaufpreis, na.rm = TRUE) %>% round(-3),
-          PreisValorisiert = mean(PreisValorisiert, na.rm = TRUE) %>% round(-3)
-        )
+        dplyr::select(Kaufpreis, PreisValorisiert) %>%
+        ## dplyr::filter(Selected == 1) %>%
+        dplyr::summarise_all(
+          c(Minimum = min, Mittelwert = function(x) mean(x) %>% round(-3), Maximum = max)
+        ) %>%
+        pivot_longer(everything()) %>%
+        separate(name, into = c("Kaufpreis", "Statistik")) %>%
+        pivot_wider(names_from = "Statistik")
+
     })
 
 
