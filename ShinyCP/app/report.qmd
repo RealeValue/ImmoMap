@@ -1,0 +1,39 @@
+---
+title: "Shiny App Report"
+author: "Your Name"
+date: "`r Sys.Date()`"
+params:
+  num: 10
+  daten: [some object]
+output: html_document
+self-contained: true
+execute:
+  echo: false
+  warning: false
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(sf)
+library(knitr)
+```
+
+```{r}
+# Report generated with parameter value from Shiny app
+cat("You selected", params$num, "random numbers.")
+# Plot with parameter value
+hist(rnorm(params$num), main = "Histogram of Random Numbers", xlab = "Value", col = "lightblue")
+```
+
+```{r, data_converter}
+## params$daten %>% saveRDS("daten_all.rds")
+
+daten_all <- params$daten %>% 
+  as_tibble() %>% 
+  dplyr::mutate(Kaufdatum = as.POSIXct(Kaufdatum, origin="1970-01-01") %>% as.Date() %>% ymd())
+```
+
+```{r}
+daten_all %>% dplyr::select(BewertungId, Kaufpreis, Kaufdatum) %>% kable()
+```

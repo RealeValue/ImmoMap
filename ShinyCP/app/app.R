@@ -49,6 +49,7 @@ source("ref_object_module.R", local = T)
 source("action_module.R",     local = T)
 source("data_module.R",       local = T)
 source("map_data.R",          local = T)
+source("download_handler_module.R",  local = T)
 source("Functions.R",         local = T)
 # source("verlauf.R")
 
@@ -66,7 +67,8 @@ ui <- fluidPage(
     mainPanel(
       ##verlauf_ui("Verlauf"),
       map_data_ui("result_data"),
-      downloadButton("report", "Generate report")
+      download_handler_ui("download_handler"),
+      #downloadButton("report", "Generate report")
     )
   )
 )
@@ -80,25 +82,7 @@ server <- function(input, output, session) {
   map_data_server("result_data", data = daten, ref_object = ref_object)
   ## verlauf_server("Verlauf") ## , polygon_data = polygon_data, action = action_module)
 
-  output$report <- downloadHandler(
-    filename <-  "XXX_volcanoes_report.pdf",
-    content = function(file) {
-      tempReport <- file.path(tempdir(), "Report.Rmd")
-      file.copy("Report.Rmd", tempReport, overwrite = TRUE)
-
-      daten <- daten()
-
-
-      params <- list(n = 20, daten = daten)
-      file_all <<- file
-      tempReport_all <<- tempReport
-
-      rmarkdown::render("Report.Rmd", output_file = "C:/tmp/CPNEU_volcanoes_report.pdf",
-                        params = params,
-                        envir = new.env(parent = globalenv())
-      )
-    }
-  )
+  download_handler_server("download_handler", daten = daten)
 
 
 }

@@ -1,13 +1,15 @@
 ---
 title: "Dynamic report"
-output: pdf_document
+output:
+  html_document
+
 params:
   n: 5
   daten: [some object]
 ---
 
 ```{r, include=FALSE}
-options(tinytex.verbose = TRUE)
+## options(tinytex.verbose = TRUE)
 ```
 
 ```{r}
@@ -19,5 +21,5 @@ params$daten %>% dplyr::select(BewertungId, Kaufpreis, Kaufdatum)
 A plot of `params$n` random points.
 
 ```{r}
-plot(rnorm(params$n), rnorm(params$n))
+## plot(rnorm(params$n), rnorm(params$n))
 ```
