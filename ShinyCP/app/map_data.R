@@ -45,7 +45,7 @@ map_data_ui <- function(id){
            sliderInput(ns("n_vergleichsobjekte"), "Anzahl Vergleichsobjekte", value = 10, min = 3, max = 30),
            leafletOutput(ns("map"))),
     # column(6,  tmapOutput(ns("tmap"))),
-    column(2,  tableOutput(ns("summary"))),
+    column(2,  dataTableOutput(ns("summary"))),
     column(12, dataTableOutput(ns("data_table"))),
   )
 }
@@ -56,6 +56,7 @@ map_data_ui <- function(id){
 map_data_server <- function(id, data, ref_object){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+
 
     observe({
       input_map_list <- reactiveValuesToList(input)
@@ -209,7 +210,7 @@ map_data_server <- function(id, data, ref_object){
         st_drop_geometry() %>%
         dplyr::arrange(desc(Selected)) %>%
         dplyr::mutate(KaufpreisQM = KaufpreisQM %>% round(-1)) %>%
-        dplyr::select(Id = BewertungId, Selected, Kaufpreis, Kaufdatum, KaufpreisQM, Zins = zins, PreisValorisiert,
+        dplyr::select(Id = BewertungId, Kaufpreis, Kaufdatum, KaufpreisQM, Zins = zins, PreisValorisiert,
                       Bezugszeitraum = zeit_diff_jahre,
 
                       Strasse, Hausnummer, Grundflaeche, NutzflaecheBerechnet, Objektart,
@@ -229,7 +230,7 @@ map_data_server <- function(id, data, ref_object){
           rownames = FALSE,
           escape = FALSE,
           editable = list(target = "cell", disable = list(columns = index)),
-          selection = list(mode = "multiple", target = "row")
+          selection = list(mode = "multiple", target = "row", selected = 1:input$n_vergleichsobjekte)
           #callback = JS(js("data", session$ns))
         )
     }, server = TRUE)
@@ -256,22 +257,26 @@ map_data_server <- function(id, data, ref_object){
 
 
     ## TODO: richtiges Vergleichsobjekte verwenden !!!
-    output$summary <- renderTable({
+    output$summary <- renderDT({
       df <- data_within_polygon()
 
       df %>%
         st_drop_geometry() %>%
         dplyr::select(Kaufpreis, KaufpreisQM, PreisValorisiert) %>%
-        ## dplyr::filter(Selected == 1) %>%
+        dplyr::filter(row_number() %in% input$data_table_rows_selected) %>%
         dplyr::summarise_all(
-          c(Minimum    = function(x) min(x, na.rm = T),
-            Mittelwert = function(x) mean(x, na.rm = T) %>% round(-3),
-            Maximum    = function(x) max(x, na.rm = T))
+          c(Minimum            = function(x) min(x, na.rm = T),
+            Mittelwert         = function(x) mean(x, na.rm = T),
+            Maximum            = function(x) max(x, na.rm = T),
+            Standardabweichung = function(x) sd(x, na.rm = T),
+            Anzahl             = function(x) sum(!is.na(x))
+            )
         ) %>%
         pivot_longer(everything()) %>%
         separate(name, into = c("Kaufpreis", "Statistik")) %>%
-        pivot_wider(names_from = "Statistik")
-
+        pivot_wider(names_from = "Kaufpreis") %>%
+        datatable(options = list(dom = 't'), rownames = FALSE) %>%
+        formatCurrency(c("Kaufpreis", "KaufpreisQM", "PreisValorisiert"), currency = "€", before = F, interval = 3, mark = ".")
     })
 
 
