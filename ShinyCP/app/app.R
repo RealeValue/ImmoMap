@@ -68,7 +68,6 @@ ui <- fluidPage(
       ##verlauf_ui("Verlauf"),
       map_data_ui("result_data"),
       download_handler_ui("download_handler"),
-      #downloadButton("report", "Generate report")
     )
   )
 )

@@ -17,8 +17,6 @@ data_module_ui <- function(id){
 
     sliderInput(ns("Grundflaeche"), "Grundstuecksgroesse", min = 0, max = 3500, value = c(0,3500), step = 10),
     sliderInput(ns("Nutzflaeche"), "Wohnflaeche", min = 0, max = 1000, value = c(0,1000), step = 1),
-
-    ## sliderInput(ns("search_radius"), label = "Radius (km)", value = 5, min = 0.5, max = 30, step = 0.5),
   )
 }
 

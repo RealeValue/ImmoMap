@@ -4,31 +4,6 @@ library(tidyverse)
 
 leaflet_gruppen <- c("only selected", "all")
 
-# shinyInput <- function(FUN, len, id, ...) {
-#   inputs <- character(len)
-#   for (i in seq_len(len)) {
-#     inputs[i] <- as.character(FUN(paste0(id, i), label = NULL, ...))
-#   }
-#   inputs
-# }
-#
-# js <- function(dtid, ns) {
-#   c(
-#     "$('[id^=checkb]').on('click', function(){",
-#     "  var id = this.getAttribute('id');",
-#     "  var i = parseInt(/checkb(\\d+)/.exec(id)[1]);",
-#     "  var value = $(this).prop('checked');",
-#     "  var info = [{row: i, col: 3, value: value}];",
-#     sprintf(
-#       "Shiny.setInputValue('%s', info);",
-#       ns(sprintf("%s_cell_edit:DT.cellInfo", dtid))
-#     ),
-#     "})"
-#   )
-# }
-
-
-
 #' map_data UI Function
 #'
 #' @description A shiny Module.
@@ -115,11 +90,7 @@ map_data_server <- function(id, data, ref_object){
         "<br>", "<b> Hausnummer:       </b>",  df_reference_object$Hausnummer,
         "<br>",
         "<br>", "<b> Marktwert:        </b>",  df_reference_object$Marktwert %>% round(-3) %>% formattable::currency(symbol = Euro, digits = 0),
-        "<br>", "<b> Datum:            </b>",  df_reference_object$Aenderungsdatum,
-
-        "<br>",
-
-        "<br>"
+        "<br>", "<b> Datum:            </b>",  df_reference_object$Aenderungsdatum
       )
 
 
@@ -253,10 +224,6 @@ map_data_server <- function(id, data, ref_object){
       ## replaceData(proxy, data_table_neu, resetPaging = FALSE)  # important
     })
 
-
-
-
-    ## TODO: richtiges Vergleichsobjekte verwenden !!!
     output$summary <- renderDT({
       df <- data_within_polygon()
 
