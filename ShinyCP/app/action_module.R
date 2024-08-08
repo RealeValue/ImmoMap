@@ -11,7 +11,6 @@ action_module_ui <- function(id){
   ns <- NS(id)
   tagList(
     actionButton(ns("start"), "Start!"),
-    textOutput(ns("text")),
   )
 }
 
@@ -21,11 +20,6 @@ action_module_ui <- function(id){
 action_module_server <- function(id){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
-
-    output$text <- renderText({
-      Action()
-      print("Action startet!")
-    })
 
     Action <- reactive({
       input$start

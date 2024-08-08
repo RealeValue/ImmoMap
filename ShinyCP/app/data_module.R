@@ -18,7 +18,7 @@ data_module_ui <- function(id){
     sliderInput(ns("Grundflaeche"), "Grundstuecksgroesse", min = 0, max = 3500, value = c(0,3500), step = 10),
     sliderInput(ns("Nutzflaeche"), "Wohnflaeche", min = 0, max = 1000, value = c(0,1000), step = 1),
 
-    sliderInput(ns("search_radius"), label = "Radius (km)", value = 5, min = 0.5, max = 30, step = 0.5),
+    ## sliderInput(ns("search_radius"), label = "Radius (km)", value = 5, min = 0.5, max = 30, step = 0.5),
   )
 }
 
@@ -45,7 +45,7 @@ data_module_server <- function(id, action, ref_object){
     data <- eventReactive( action(), {
       df_reference_object <- ref_object()
 
-      search_polygon_sf <-  df_reference_object %>% search_vergleichspreise_polygon(buffer_radius = input$search_radius * 1000)
+      search_polygon_sf <-  df_reference_object %>% search_vergleichspreise_polygon(buffer_radius = 30000) ## input$search_radius * 1000)
       df_vergleichswerte <- find_ComparableObjectsWithinPolygon(search_polygon_sf, df_reference_object)
 
       df_vergleichswerte <<- df_vergleichswerte
