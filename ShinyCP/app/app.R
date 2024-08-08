@@ -44,13 +44,13 @@ df_immonet     <- tbl(con_immonet, "immonet")
 ra_score_raster        <- read_stars("../data/ra_score_raster.tif")
 names(ra_score_raster) <- "ra_score_raster"
 
-source("id_module.R",         local = T)
-source("ref_object_module.R", local = T)
-source("action_module.R",     local = T)
-source("data_module.R",       local = T)
-source("map_data.R",          local = T)
-source("download_handler_module.R",  local = T)
-source("Functions.R",         local = T)
+source("id_module.R",               local = T)
+source("ref_object_module.R",       local = T)
+source("action_module.R",           local = T)
+source("data_module.R",             local = T)
+source("map_data.R",                local = T)
+source("download_handler_module.R", local = T)
+source("Functions.R",               local = T)
 # source("verlauf.R")
 
 
@@ -78,11 +78,11 @@ server <- function(input, output, session) {
   ref_object <- ref_object_module_server("reference_object")
   action_module <- action_module_server("start")
 
-  daten <- data_module_server("data", action = action_module, ref_object = ref_object)
-  map_data_server("result_data", data = daten, ref_object = ref_object)
+  daten         <- data_module_server("data", action = action_module, ref_object = ref_object)
+  data_selected <- map_data_server("result_data", data = daten, ref_object = ref_object)
   ## verlauf_server("Verlauf") ## , polygon_data = polygon_data, action = action_module)
 
-  download_handler_server("download_handler", daten = daten)
+  download_handler_server("download_handler", daten = data_selected)
 
 
 }

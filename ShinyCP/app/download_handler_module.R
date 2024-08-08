@@ -10,7 +10,6 @@
 download_handler_ui <- function(id){
   ns <- NS(id)
   tagList(
-    numericInput(ns("num"), "Number of observations:", 100),
     downloadButton(ns("downloadReport"), "Download Report")
   )
 }
@@ -35,14 +34,20 @@ download_handler_server <- function(id, daten){
         # Define the report name
         report_file <- paste0("Report.html")
 
-        report_file <<- report_file
-        daten       <- daten()
+        ## weil Daten nicht im R Format (zB Datum oder NA's) versuche diesen Zugang:
+        daten          <- daten()
+        save_data_dir  <- "C:/tmp" ## tempdir()
+        save_data_file <- paste0(save_data_dir, "/data_report.rds")
+        print(save_data_file)
+        daten %>% saveRDS(save_data_file)
 
+        params <- list(save_data_file = save_data_file)
+        params_all <<- params
 
         # Render the Quarto document
         quarto::quarto_render(
           input = "report.qmd",
-          execute_params = list(num = input$num, daten = daten),
+          execute_params = params,
           output_file = report_file
         )
 

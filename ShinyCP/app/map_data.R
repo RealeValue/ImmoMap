@@ -280,6 +280,14 @@ map_data_server <- function(id, data, ref_object){
     })
 
 
+    data_selected <- reactive({
+      df <- data_within_polygon()
+
+      df %>%
+        dplyr::filter(row_number() %in% input$data_table_rows_selected)
+    })
+
+    return(data_selected)
   })
 }
 
